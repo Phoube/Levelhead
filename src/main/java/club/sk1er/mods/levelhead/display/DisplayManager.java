@@ -22,6 +22,7 @@ public class DisplayManager {
     private TabDisplay tab = null;
     private MasterConfig config = new MasterConfig();
     private File file;
+    private MediaheadDisplay mediaheadDisplay;
 
     public DisplayManager(JsonHolder source, File file) {
         this.file = file;
@@ -41,6 +42,9 @@ public class DisplayManager {
         if (source.has("tab")) {
             this.tab = new TabDisplay(GSON.fromJson(source.optJsonObject("tab").getObject(), DisplayConfig.class));
         }
+        if (source.has("media")) {
+            this.mediaheadDisplay = new MediaheadDisplay(GSON.fromJson(source.optJsonObject("media").getObject(), MediaheadConfig.class));
+        }
         Runtime.getRuntime().addShutdownHook(new Thread(this::save));
 
         if (aboveHead.isEmpty()) {
@@ -53,7 +57,6 @@ public class DisplayManager {
             tab = new TabDisplay(config);
         }
 
-        adjustIndexes();
 
         if (chat == null) {
             DisplayConfig config = new DisplayConfig();
@@ -62,6 +65,16 @@ public class DisplayManager {
         }
 
 
+        if (mediaheadDisplay == null) {
+            MediaheadConfig mediaheadConfig = new MediaheadConfig();
+
+            this.mediaheadDisplay = new MediaheadDisplay(mediaheadConfig);
+        }
+        adjustIndexes();
+    }
+
+    public MediaheadDisplay getMediaheadDisplay() {
+        return mediaheadDisplay;
     }
 
     public void adjustIndexes() {

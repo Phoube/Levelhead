@@ -6,7 +6,7 @@ import club.sk1er.mods.levelhead.display.ChatDisplay;
 import club.sk1er.mods.levelhead.display.DisplayConfig;
 import club.sk1er.mods.levelhead.display.LevelheadDisplay;
 import club.sk1er.mods.levelhead.forge.transform.Hooks;
-import club.sk1er.mods.levelhead.purchases.LevelheadPurchaseStates;
+import club.sk1er.mods.levelhead.data.LevelheadPurchaseStates;
 import club.sk1er.mods.levelhead.renderer.LevelheadChatRenderer;
 import club.sk1er.mods.levelhead.utils.ChatColor;
 import club.sk1er.mods.levelhead.utils.JsonHolder;
@@ -561,7 +561,6 @@ public class NewLevelheadGui extends GuiScreen implements GuiYesNoCallback {
     private void attemptPurchase(String chat) {
         Levelhead instance = Levelhead.getInstance();
         JsonHolder paidData = instance.getPaidData();
-        System.out.println(paidData);
         JsonHolder extra_displays = paidData.optJsonObject("extra_displays");
         JsonHolder stats = paidData.optJsonObject("stats");
         boolean found = false;

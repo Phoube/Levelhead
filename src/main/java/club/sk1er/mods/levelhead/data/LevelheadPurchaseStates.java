@@ -1,4 +1,4 @@
-package club.sk1er.mods.levelhead.purchases;
+package club.sk1er.mods.levelhead.data;
 
 public class LevelheadPurchaseStates {
 

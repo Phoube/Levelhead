@@ -1,5 +1,6 @@
 package club.sk1er.mods.levelhead.display;
 
+import club.sk1er.mods.levelhead.Levelhead;
 import club.sk1er.mods.levelhead.guis.NewLevelheadGui;
 import club.sk1er.mods.levelhead.renderer.LevelheadTag;
 import club.sk1er.mods.levelhead.utils.JsonHolder;
@@ -83,6 +84,10 @@ public abstract class LevelheadDisplay {
 
     public HashMap<UUID, Integer> getTimeCheck() {
         return timeCheck;
+    }
+
+    public LevelheadTag buildTag(Levelhead levelhead, JsonHolder object, UUID uuid, LevelheadDisplay display, boolean allowOverride) {
+        return levelhead.buildTag(object, uuid, display, allowOverride);
     }
 
 }

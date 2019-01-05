@@ -2,20 +2,24 @@ package club.sk1er.mods.levelhead;
 
 import club.sk1er.mods.levelhead.auth.MojangAuth;
 import club.sk1er.mods.levelhead.commands.LevelheadCommand;
+import club.sk1er.mods.levelhead.data.LevelheadPurchaseStates;
+import club.sk1er.mods.levelhead.data.MediaheadMediaType;
 import club.sk1er.mods.levelhead.display.AboveHeadDisplay;
 import club.sk1er.mods.levelhead.display.DisplayConfig;
 import club.sk1er.mods.levelhead.display.DisplayManager;
 import club.sk1er.mods.levelhead.display.LevelheadDisplay;
-import club.sk1er.mods.levelhead.purchases.LevelheadPurchaseStates;
 import club.sk1er.mods.levelhead.renderer.LevelheadAboveHeadRender;
 import club.sk1er.mods.levelhead.renderer.LevelheadChatRenderer;
 import club.sk1er.mods.levelhead.renderer.LevelheadTag;
+import club.sk1er.mods.levelhead.renderer.MediaheadRenderer;
 import club.sk1er.mods.levelhead.renderer.NullLevelheadTag;
 import club.sk1er.mods.levelhead.utils.JsonHolder;
 import club.sk1er.mods.levelhead.utils.Multithreading;
 import club.sk1er.mods.levelhead.utils.Sk1erMod;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
@@ -39,6 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +56,7 @@ public class Levelhead extends DummyModContainer {
         Hello !
      */
     public static final String MODID = "LEVEL_HEAD";
-    public static final String VERSION = "6.1";
+    public static final String VERSION = "7.1";
     private static Levelhead instance;
     public UUID userUuid = null;
     public int count = 1;
@@ -69,6 +74,10 @@ public class Levelhead extends DummyModContainer {
     private JsonHolder purchaseStatus = new JsonHolder();
     private LevelheadChatRenderer levelheadChatRenderer;
     private JsonHolder rawPurchases = new JsonHolder();
+    private JsonHolder mediaheadData = new JsonHolder();
+    private List<MediaheadMediaType> mediaheadMediaTypes = new ArrayList<>();
+    private List<Runnable> ticksEvents = new ArrayList<>();
+
 
     public Levelhead() {
         super(new ModMetadata());
@@ -81,7 +90,7 @@ public class Levelhead extends DummyModContainer {
         meta.description = "Levelhead displays a player's network level above their head";
 
         //noinspection deprecation
-        meta.url = meta.updateUrl = "http://sk1er.club/levelhead";
+        meta.url = meta.updateUrl = "https://sk1er.club/levelhead";
 
         meta.authorList = Arrays.asList("Sk1er", "boomboompower");
         meta.credits = "HypixelAPI";
@@ -118,7 +127,7 @@ public class Levelhead extends DummyModContainer {
     }
 
     public synchronized void refreshRawPurchases() {
-        rawPurchases = new JsonHolder(rawWithAgent("https://api.sk1er.club/purchases/" + Minecraft.getMinecraft().getSession().getProfile().getId().toString()));
+        rawPurchases = new JsonHolder(rawWithAgent("https://api.sk1er.club/data/" + Minecraft.getMinecraft().getSession().getProfile().getId().toString()));
     }
 
     public MojangAuth getAuth() {
@@ -151,6 +160,10 @@ public class Levelhead extends DummyModContainer {
 
     }
 
+    public void schedule(Runnable runnable) {
+        ticksEvents.add(runnable);
+    }
+
     @Subscribe
     @EventHandler
     public void init(FMLPreInitializationEvent event) {
@@ -164,12 +177,7 @@ public class Levelhead extends DummyModContainer {
         });
         mod.checkStatus();
         auth = new MojangAuth(mod);
-        Multithreading.runAsync(() -> {
-            auth.auth();
-            if (auth.isFailed()) {
-                getSk1erMod().sendMessage("An error occurred while logging logging into Levelhead: " + auth.getFailMessage());
-            }
-        });
+        Multithreading.runAsync(this::auth);
         register(mod);
         JsonHolder config = new JsonHolder();
         try {
@@ -181,7 +189,22 @@ public class Levelhead extends DummyModContainer {
         Multithreading.runAsync(this::refreshPurchaseStates);
         Multithreading.runAsync(this::refreshRawPurchases);
         Multithreading.runAsync(this::refreshPaidData);
+        Multithreading.runAsync(this::getMediaheadData);
 
+    }
+
+    private void getMediaheadData() {
+        this.mediaheadData = new JsonHolder(getSk1erMod().rawWithAgent("https://api.sk1er.club/mediahead_head"));
+
+        JsonArray sources = mediaheadData.optJSONArray("sources");
+        for (JsonElement source : sources) {
+            JsonHolder jsonHolder = new JsonHolder(source.getAsJsonObject());
+            String backend = jsonHolder.optString("backend");
+            String display = jsonHolder.optString("display");
+            String url = jsonHolder.optString("image_url");
+            String click = jsonHolder.optString("click");
+            mediaheadMediaTypes.add(new MediaheadMediaType(display, backend, url, click));
+        }
     }
 
     @Subscribe
@@ -190,7 +213,8 @@ public class Levelhead extends DummyModContainer {
         instance = this;
         Minecraft minecraft = FMLClientHandler.instance().getClient();
         userUuid = minecraft.getSession().getProfile().getId();
-        register(new LevelheadAboveHeadRender(this), this);
+        register(new LevelheadAboveHeadRender(this), this, new MediaheadRenderer(this));
+
         ClientCommandHandler.instance.registerCommand(new LevelheadCommand());
         levelheadChatRenderer = new LevelheadChatRenderer(this);
         register(levelheadChatRenderer);
@@ -204,7 +228,8 @@ public class Levelhead extends DummyModContainer {
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void tick(TickEvent.ClientTickEvent event) {
-
+        ticksEvents.forEach(Runnable::run);
+        ticksEvents.clear();
         if ((event.phase == TickEvent.Phase.START ||
                 !mod.isHypixel() ||
                 !getDisplayManager().getMasterConfig().isEnabled()
@@ -272,7 +297,7 @@ public class Levelhead extends DummyModContainer {
         }
         Multithreading.runAsync(() -> {
             String raw = rawWithAgent(
-                    "https://api.sk1er.club/levelheadv5/" + trimUuid(uuid) + "/" + type
+                    "https://api.sk1er.club/" + display.getPosition().getUrl() + "/" + trimUuid(uuid) + "/" + type
                             + "/" + trimUuid(Minecraft.getMinecraft().getSession().getProfile().getId()) +
                             "/" + VERSION + "/" + auth.getHash() + "/" + display.getPosition().name());
             JsonHolder object = new JsonHolder(raw);
@@ -284,7 +309,7 @@ public class Levelhead extends DummyModContainer {
                 object.remove("header_obj");
                 object.remove("footer_obj");
             }
-            LevelheadTag value = buildTag(object, uuid, display, allowOverride);
+            LevelheadTag value = display.buildTag(this, object, uuid, display, allowOverride);
             display.getCache().put(uuid, value);
             display.getTrueValueCache().put(uuid, object.optString("strlevel"));
         });
@@ -317,6 +342,7 @@ public class Levelhead extends DummyModContainer {
         //Ensure text values are present
         construct.put("exclude", object.optBoolean("exclude"));
         construct.put("header", headerObj).put("footer", footerObj);
+        construct.put("raw", object);
         value.construct(construct);
         return value;
     }
@@ -336,10 +362,6 @@ public class Levelhead extends DummyModContainer {
         return data;
     }
 
-    public LevelheadTag getLevelString(LevelheadDisplay display, UUID uuid) {
-        return display.getCache().getOrDefault(uuid, null);
-    }
-
     //Remote runaway memory leak from storing levels in ram.
     private void clearCache() {
         getDisplayManager().checkCacheSizes();
@@ -356,4 +378,18 @@ public class Levelhead extends DummyModContainer {
         return mod;
     }
 
+    private void auth() {
+        auth.auth();
+        if (auth.isFailed()) {
+            getSk1erMod().sendMessage("An error occurred while logging logging into Levelhead: " + auth.getFailMessage());
+        }
+    }
+
+    public List<MediaheadMediaType> getMediaheadMediaTypes() {
+        return mediaheadMediaTypes;
+    }
+
+    public boolean isLobby() {
+        return true; //TODO
+    }
 }

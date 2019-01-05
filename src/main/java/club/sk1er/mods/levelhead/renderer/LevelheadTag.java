@@ -11,11 +11,12 @@ public class LevelheadTag {
     private LevelheadComponent header;
     private LevelheadComponent footer;
     private UUID owner;
+    private JsonHolder rawData;
+
 
     public LevelheadTag(UUID owner) {
         this.owner = owner;
     }
-
 
     public LevelheadComponent getHeader() {
         return header;
@@ -29,7 +30,12 @@ public class LevelheadTag {
         return owner;
     }
 
+    public JsonHolder getRawData() {
+        return rawData;
+    }
+
     public void construct(JsonHolder holder) {
+        this.rawData = holder;
         if (header == null) {
             this.header = build(holder, true);
         }
@@ -37,11 +43,12 @@ public class LevelheadTag {
             this.footer = build(holder, false);
         }
     }
+
     public void reApply(LevelheadTag holder) {
-        if(!this.header.isCustom()) {
+        if (!this.header.isCustom()) {
             this.header = holder.header;
         }
-        if(!this.footer.isCustom()) {
+        if (!this.footer.isCustom()) {
             this.footer = holder.footer;
 
         }

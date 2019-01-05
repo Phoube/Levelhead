@@ -27,6 +27,7 @@ public class DisplayConfig {
     private static double otherOffset;
     private String type = "LEVEL";
     private static double selfOffset;
+
     public double getOtherOffset() {
         return otherOffset;
     }
@@ -179,4 +180,6 @@ public class DisplayConfig {
     public static void setSelfOffset(double selfOffset1) {
         selfOffset = selfOffset1;
     }
+
+
 }

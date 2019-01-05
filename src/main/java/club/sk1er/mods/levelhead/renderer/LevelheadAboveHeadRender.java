@@ -25,7 +25,7 @@ import java.awt.Color;
  */
 public class LevelheadAboveHeadRender {
 
-    private Levelhead levelhead;
+    protected Levelhead levelhead;
 
     public LevelheadAboveHeadRender(Levelhead levelhead) {
         this.levelhead = levelhead;
@@ -108,7 +108,7 @@ public class LevelheadAboveHeadRender {
         GlStateManager.popMatrix();
     }
 
-    private void renderString(FontRenderer renderer, LevelheadTag tag) {
+    void renderString(FontRenderer renderer, LevelheadTag tag) {
 
         int y = 0;
 
@@ -122,7 +122,7 @@ public class LevelheadAboveHeadRender {
 
     }
 
-    private void render(FontRenderer renderer, LevelheadComponent header, int x) {
+    void render(FontRenderer renderer, LevelheadComponent header, int x) {
         GlStateManager.disableDepth();
         GlStateManager.depthMask(true);
         GlStateManager.disableDepth();
