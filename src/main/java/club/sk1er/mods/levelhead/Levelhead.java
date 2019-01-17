@@ -81,7 +81,7 @@ public class Levelhead extends DummyModContainer {
 
     public Levelhead() {
         super(new ModMetadata());
-
+        instance = this;
         ModMetadata meta = this.getMetadata();
         meta.modId = MODID;
         meta.version = VERSION;
@@ -194,7 +194,7 @@ public class Levelhead extends DummyModContainer {
     }
 
     private void getMediaheadData() {
-        this.mediaheadData = new JsonHolder(getSk1erMod().rawWithAgent("https://api.sk1er.club/mediahead_head"));
+        this.mediaheadData = new JsonHolder(getSk1erMod().rawWithAgent("https://api.sk1er.club/mediahead_data"));
 
         JsonArray sources = mediaheadData.optJSONArray("sources");
         for (JsonElement source : sources) {
@@ -202,15 +202,17 @@ public class Levelhead extends DummyModContainer {
             String backend = jsonHolder.optString("backend");
             String display = jsonHolder.optString("display");
             String url = jsonHolder.optString("image_url");
-            String click = jsonHolder.optString("click");
-            mediaheadMediaTypes.add(new MediaheadMediaType(display, backend, url, click));
+            MediaheadMediaType e = new MediaheadMediaType(display, backend, url);
+            mediaheadMediaTypes.add(e);
+            System.out.println("adding media head type " + e);
+
         }
     }
 
     @Subscribe
     @EventHandler
     public void init(FMLPostInitializationEvent event) {
-        instance = this;
+
         Minecraft minecraft = FMLClientHandler.instance().getClient();
         userUuid = minecraft.getSession().getProfile().getId();
         register(new LevelheadAboveHeadRender(this), this, new MediaheadRenderer(this));

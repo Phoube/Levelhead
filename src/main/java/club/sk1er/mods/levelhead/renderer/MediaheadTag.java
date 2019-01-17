@@ -19,9 +19,14 @@ public class MediaheadTag extends LevelheadTag {
     }
 
     public void apply(Levelhead levelhead, JsonHolder data) {
+        JsonHolder links = data.optJsonObject("links");
         for (MediaheadMediaType mediaheadMediaType : levelhead.getMediaheadMediaTypes()) {
-            if (data.has(mediaheadMediaType.getBackend())) {
-                this.items.add(new MediaheadItem(mediaheadMediaType, data.optString(mediaheadMediaType.getBackend())));
+            if (links.has(mediaheadMediaType.getBackend())) {
+                MediaheadItem e = new MediaheadItem(mediaheadMediaType, links.optString(mediaheadMediaType.getBackend()));
+                this.items.add(e);
+                for (int i = 0; i < 100; i++) {
+                    System.out.println("ADD: " + e);
+                }
             }
         }
     }

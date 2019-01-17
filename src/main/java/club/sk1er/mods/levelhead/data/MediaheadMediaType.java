@@ -16,15 +16,13 @@ public class MediaheadMediaType {
     private String name;
     private String backend;
     private String imageUrl;
-    private String click;
     private boolean ready = false;
     private int textureID;
 
-    public MediaheadMediaType(String name, String backend, String imageUrl, String click) {
+    public MediaheadMediaType(String name, String backend, String imageUrl) {
         this.name = name;
         this.backend = backend;
         this.imageUrl = imageUrl;
-        this.click = click;
         Multithreading.runAsync(() -> {
             try {
                 URL url = new URL(imageUrl);
@@ -47,6 +45,17 @@ public class MediaheadMediaType {
         });
     }
 
+    @Override
+    public String toString() {
+        return "MediaheadMediaType{" +
+                "name='" + name + '\'' +
+                ", backend='" + backend + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", ready=" + ready +
+                ", textureID=" + textureID +
+                '}';
+    }
+
     public int getTextureID() {
         return textureID;
     }
@@ -67,7 +76,4 @@ public class MediaheadMediaType {
         return imageUrl;
     }
 
-    public String getClick() {
-        return click;
-    }
 }

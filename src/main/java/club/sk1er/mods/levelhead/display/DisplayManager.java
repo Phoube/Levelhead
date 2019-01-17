@@ -110,6 +110,9 @@ public class DisplayManager {
             tab.tick();
         if (chat != null)
             chat.tick();
+        if (mediaheadDisplay != null)
+            mediaheadDisplay.tick();
+
     }
 
     public void checkCacheSizes() {
@@ -119,6 +122,9 @@ public class DisplayManager {
         }
         if (chat != null) {
             chat.checkCacheSize();
+        }
+        if (mediaheadDisplay != null) {
+            mediaheadDisplay.checkCacheSize();
         }
     }
 
@@ -130,6 +136,9 @@ public class DisplayManager {
         }
         if (chat != null) {
             jsonHolder.put("chat", new JsonHolder(GSON.toJson(chat.getConfig())));
+        }
+        if (mediaheadDisplay != null) {
+            jsonHolder.put("media", new JsonHolder(GSON.toJson(mediaheadDisplay.getConfig())));
         }
         JsonArray head = new JsonArray();
         for (AboveHeadDisplay aboveHeadDisplay : this.aboveHead) {
