@@ -24,9 +24,6 @@ public class MediaheadTag extends LevelheadTag {
             if (links.has(mediaheadMediaType.getBackend())) {
                 MediaheadItem e = new MediaheadItem(mediaheadMediaType, links.optString(mediaheadMediaType.getBackend()));
                 this.items.add(e);
-                for (int i = 0; i < 100; i++) {
-                    System.out.println("ADD: " + e);
-                }
             }
         }
     }
