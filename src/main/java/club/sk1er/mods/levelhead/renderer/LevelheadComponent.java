@@ -16,6 +16,7 @@ public class LevelheadComponent {
     private int blue;
     private int alpha;
     private boolean custom;
+
     public LevelheadComponent(String value) {
         this.value = value.replace("&","\u00a7");
     }

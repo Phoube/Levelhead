@@ -32,7 +32,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -153,6 +153,15 @@ public class Levelhead extends DummyModContainer {
     @Subscribe
     @EventHandler
     public void init(FMLPreInitializationEvent event) {
+
+        if (ModCoreInstaller.isIsRunningModCore()) {
+            if (ModCoreInstaller.initializeModCore(Minecraft.getMinecraft().mcDataDir)) {
+                System.out.println("Levelhead loaded ModCore Successfully");
+            } else {
+                System.out.println("Levelhead did not ModCore Successfully");
+            }
+        }
+
         JsonHolder config = new JsonHolder();
 
         try {
