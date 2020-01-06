@@ -81,18 +81,21 @@ public class ModCoreInstaller {
         return new JsonHolder();
     }
 
-    public static boolean initializeModCore(File gameDir) {
+    public static void initializeModCore(File gameDir) {
+        if (!isIsRunningModCore()) {
+            return;
+        }
         try {
             Class<?> modCore = Class.forName(className);
             Method instanceMethod = modCore.getMethod("getInstance");
             Method initialize = modCore.getMethod("initialize", File.class);
             Object modCoreObject = instanceMethod.invoke(null);
             initialize.invoke(modCoreObject, gameDir);
-            return true;
+            System.out.println("Loaded ModCore Successfully");
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        return false;
+        System.out.println("Did NOT ModCore Successfully");
     }
 
     public static int initialize(File gameDir, String minecraftVersion) {

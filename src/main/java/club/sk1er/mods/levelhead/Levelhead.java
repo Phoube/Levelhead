@@ -153,15 +153,7 @@ public class Levelhead extends DummyModContainer {
     @Subscribe
     @EventHandler
     public void init(FMLPreInitializationEvent event) {
-
-        if (ModCoreInstaller.isIsRunningModCore()) {
-            if (ModCoreInstaller.initializeModCore(Minecraft.getMinecraft().mcDataDir)) {
-                System.out.println("Levelhead loaded ModCore Successfully");
-            } else {
-                System.out.println("Levelhead did not ModCore Successfully");
-            }
-        }
-
+        ModCoreInstaller.initializeModCore(Minecraft.getMinecraft().mcDataDir);
         JsonHolder config = new JsonHolder();
 
         try {
