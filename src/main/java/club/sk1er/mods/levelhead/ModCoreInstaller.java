@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -13,13 +15,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /*
     Created by Sk1er for use in all mods. Install under exact package name each time.
@@ -28,7 +33,7 @@ public class ModCoreInstaller {
 
 
     private static final String VERSION_URL = "https://api.sk1er.club/modcore_versions";
-
+    private static final String className = "club.sk1er.mods.core.ModCore";
     private static boolean errored = false;
     private static String error;
     private static File dataDir = null;
@@ -40,9 +45,16 @@ public class ModCoreInstaller {
 
     private static boolean isInitalized() {
         try {
+            LinkedHashSet<String> objects = new LinkedHashSet<>();
+            objects.add(className);
+            Launch.classLoader.clearNegativeEntries(objects);
+            Field invalidClasses = LaunchClassLoader.class.getDeclaredField("invalidClasses");
+            invalidClasses.setAccessible(true);
+            Object obj = invalidClasses.get(ModCoreInstaller.class.getClassLoader());
+            ((Set<String>) obj).remove(className);
             return Class.forName("club.sk1er.mods.core.ModCore") != null;
-        } catch (ClassNotFoundException ignored) {
-
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException ignored) {
+            ignored.printStackTrace();
         }
         return false;
     }
@@ -60,7 +72,6 @@ public class ModCoreInstaller {
         ModCoreInstaller.error = error;
     }
 
-
     private static JsonHolder readFile(File in) {
         try {
             return new JsonHolder(FileUtils.readFileToString(in));
@@ -72,7 +83,7 @@ public class ModCoreInstaller {
 
     public static boolean initializeModCore(File gameDir) {
         try {
-            Class<?> modCore = Class.forName("club.sk1er.mods.core.ModCore");
+            Class<?> modCore = Class.forName(className);
             Method instanceMethod = modCore.getMethod("getInstance");
             Method initialize = modCore.getMethod("initialize", File.class);
             Object modCoreObject = instanceMethod.invoke(null);
